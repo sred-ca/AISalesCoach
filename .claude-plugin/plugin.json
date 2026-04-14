@@ -1,0 +1,10 @@
+{
+  "name": "sales-coach",
+  "version": "0.2.0",
+  "description": "Automated weekly sales coaching system for SRED.ca. Pulls activity data from Fireflies, HubSpot, HeyReach, and Gmail, prepares a pre-session brief for the VAPI coaching call with Evan, then auto-generates post-session reports (Evan's Coaching Report + Jude's Manager Summary) and updates the living Evan profile. Includes escalation nudges if the coaching call is missed.",
+  "author": {
+    "name": "SRED.ca",
+    "email": "jude@sred.ca"
+  },
+  "keywords": ["sales-coaching", "sred", "vapi", "hubspot", "fireflies", "evan"]
+}
