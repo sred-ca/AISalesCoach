@@ -52,40 +52,48 @@ If no transcript is found, check the current day and time (ET) to decide the res
 Log "No VAPI transcript found for week of [DATE]. Will retry." and exit gracefully.
 
 **Tuesday 5pm ET (hour = 17):** Send a gentle nudge to Evan only.
-First check for marker file `sales-coach/outputs/nudge-sent-{week_start}.txt` — if it already contains "Tier 1 sent", skip the send. Otherwise, use Gmail `send_message` (direct send, NOT a draft):
+First check for marker file `sales-coach/outputs/nudge-sent-{week_start}.txt` — if it already contains "Tier 1 sent", skip the send. Otherwise, create a Google Calendar event using `gcal_create_event` with `sendUpdates: "all"` — Google sends the email notification automatically:
 ```
-To: evan@sred.ca
-Subject: Quick check-in — coaching call this week?
-Body:
+Summary: "Coaching Call Reminder — Call John"
+Description:
   Hey Evan,
 
   Just checking in — did you get a chance to hop on the coaching call
   this week? No rush if it's happening tomorrow.
 
+  Call +1 (571) 498-9194 when ready.
+
   — John
+Start: Tomorrow 9:00 AM ET (15-min event)
+Attendees: evan@sred.ca
+sendUpdates: "all"
 ```
-After sending, create or append to `sales-coach/outputs/nudge-sent-{week_start}.txt`:
+After creating, append to `sales-coach/outputs/nudge-sent-{week_start}.txt`:
 ```
-Tier 1 sent: Tuesday [date] [time]
+Tier 1 sent: Tuesday [date] [time] — gcal event [event_id]
 ```
 Then exit. Do not generate reports.
 
 **Wednesday 5pm ET (hour = 17):** Send an alert to both Jude and Evan.
-First check the marker file — if it already contains "Tier 2 sent", skip. Otherwise, use Gmail `send_message` (direct send, NOT a draft):
+First check the marker file — if it already contains "Tier 2 sent", skip. Otherwise, create a Google Calendar event with both attendees:
 ```
-To: jude@sred.ca, evan@sred.ca
-Subject: Missing coaching call transcript — week of [Monday date]
-Body:
+Summary: "Missing Coaching Call — Week of [Monday date]"
+Description:
   Heads up — no coaching call transcript was detected this week.
 
   Either the call hasn't happened yet, or Fireflies didn't capture it.
   Please check and confirm.
 
+  Evan can call +1 (571) 498-9194 anytime.
+
   — Sales Coach System
+Start: Today 5:30 PM ET (15-min event)
+Attendees: evan@sred.ca, jude@sred.ca
+sendUpdates: "all"
 ```
-After sending, append to `sales-coach/outputs/nudge-sent-{week_start}.txt`:
+After creating, append to `sales-coach/outputs/nudge-sent-{week_start}.txt`:
 ```
-Tier 2 sent: Wednesday [date] [time]
+Tier 2 sent: Wednesday [date] [time] — gcal event [event_id]
 ```
 Then exit. Do not generate reports.
 
@@ -319,8 +327,8 @@ VAPI system prompt: [updated / not updated — note if VAPI API call succeeded o
 
 ## Error Handling
 
-- **No transcript found:** Log and exit. Do not generate reports. The scheduled task retries hourly Mon–Wed. A gentle nudge emails Evan at Tuesday 5pm ET; an alert emails both Jude and Evan at Wednesday 5pm ET. Each nudge sends only once per week (controlled by marker file).
-- **VAPI API fails on system prompt update:** Note in output. Jude must manually paste the new prompt via dashboard UI. See `agents/vapi-config.md` for the Cloudflare WAF workaround note.
+- **No transcript found:** Log and exit. Do not generate reports. The scheduled task retries hourly Mon–Wed. Nudges are sent via Google Calendar events (which trigger email notifications): gentle nudge to Evan at Tuesday 5pm ET, alert to both Jude and Evan at Wednesday 5pm ET. Each nudge sends only once per week (controlled by marker file).
+- **VAPI API fails on system prompt update:** Run `agents/update_vapi_prompt.py` manually, or fall back to pasting `outputs/vapi-prompt-assembled-[DATE].txt` into the VAPI dashboard.
 - **Gmail MCP draft fails:** Save the draft body as a `.txt` file in `outputs/` so Jude can copy-paste.
 - **Font download fails (sred_doc.py):** Check network, retry. Fonts are cached after first download.
 
