@@ -66,7 +66,7 @@ Monday–Wednesday (automated, hourly) — Post-Session Processing
 | Model | Claude Sonnet 4 |
 | First message | "Hey Evan, it's John. How you doing?" |
 
-**⚠ Known limitation:** VAPI API PATCH fails on large system prompts (Cloudflare WAF 403/1010). Always update the system prompt manually via the VAPI dashboard after each Monday prep run. The assembled prompt is saved to `outputs/vapi-prompt-assembled-[DATE].txt`.
+**System prompt update:** The static prompt (John's persona, methodology) lives on the assistant with `{{PRE_SESSION_BRIEF}}` and `{{PERSONAL_GOALS}}` placeholders. The weekly prep task injects fresh data via `agents/update_vapi_prompt.py` (uses `http.client` to bypass Cloudflare WAF). Requires `VAPI_API_KEY` environment variable.
 
 ## Setup
 

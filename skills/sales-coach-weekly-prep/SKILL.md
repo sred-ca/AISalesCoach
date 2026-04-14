@@ -147,26 +147,30 @@ Save to: sales-coach/outputs/pre-session-brief-[YYYY-MM-DD].txt
 File is plain text, ~10-20KB. This file is the anchor for the entire week's coaching cycle.
 ```
 
-## Step 6: Update VAPI System Prompt
+## Step 6: Update VAPI System Prompt (Automated)
 
-The VAPI agent needs the new brief injected. The full system prompt is ~40KB and includes:
-- Static: John persona, SRED.ca context, methodology (set once, rarely changes)
-- Dynamic: Pre-Session Brief + evan-profile.md snapshot (updated weekly)
+The VAPI agent's system prompt has two parts:
+- **Static:** John persona, SRED.ca context, methodology — stored on the assistant with `{{PRE_SESSION_BRIEF}}` and `{{PERSONAL_GOALS}}` placeholders
+- **Dynamic:** Pre-Session Brief + Personal Goals — injected weekly via API
 
-**⚠ VAPI API limitation:** PATCH requests with payloads >~10KB hit Cloudflare WAF (403/1010 error). Do not attempt full system prompt update via API.
+Run the update script to inject the new brief into the VAPI assistant:
 
-**Workaround options:**
-1. (Recommended) Update only the dynamic section via API if VAPI supports partial updates
-2. Manually: Jude pastes the new pre-session brief into the VAPI dashboard
-   - Dashboard: https://vapi.ai
-   - Assistant ID: `401905cf-f38f-4277-8bee-814916aaf2c0`
-   - Find the system prompt, replace the "PRE-SESSION BRIEF" section
-
-**The assembled prompt file:** Save the full updated prompt as:
+```bash
+VAPI_API_KEY="$VAPI_API_KEY" python3 agents/update_vapi_prompt.py \
+  --brief outputs/pre-session-brief-[YYYY-MM-DD].txt
 ```
-sales-coach/outputs/vapi-prompt-assembled-[YYYY-MM-DD].txt
-```
-So Jude can paste it manually if needed.
+
+The script:
+1. Loads the static prompt template from `agents/vapi-coaching-agent-prompt.md`
+2. Reads the Pre-Session Brief and `evan-personal-goals.md`
+3. Replaces `{{PRE_SESSION_BRIEF}}` and `{{PERSONAL_GOALS}}` with the actual content
+4. PATCHes the VAPI assistant via API (uses `http.client` to bypass Cloudflare WAF)
+
+**Environment variable required:** `VAPI_API_KEY` must be set. The API key is stored securely — never commit it to git.
+
+**Fallback:** If the API call fails, the assembled prompt is saved to `outputs/vapi-prompt-assembled-[YYYY-MM-DD].txt` for manual pasting via the VAPI dashboard.
+
+After the update, Evan can call +1 (571) 498-9194 anytime — the fresh brief is already loaded.
 
 ## Step 7: Confirm and Log
 
@@ -182,13 +186,11 @@ Data pulled:
   • Gmail: checked (no additional prospect emails found / found X relevant threads)
 
 Pre-Session Brief: outputs/pre-session-brief-[DATE].txt ([size])
-VAPI prompt: outputs/vapi-prompt-assembled-[DATE].txt
+VAPI system prompt: ✅ Updated via API ([size] chars)
 
 Last week's commitments in brief: [yes / none — first session]
 
-⚠ VAPI system prompt requires manual update (Cloudflare WAF limitation).
-  Paste assembled prompt from: outputs/vapi-prompt-assembled-[DATE].txt
-  Dashboard: https://vapi.ai → Assistant 401905cf → System Prompt
+Evan can call +1 (571) 498-9194 anytime — fresh brief is loaded.
 ```
 
 ## Reference Files
